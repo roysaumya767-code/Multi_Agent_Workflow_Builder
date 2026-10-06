@@ -1,6 +1,6 @@
 # Multi_Agent_Workflow_Builder
 
-# (Backend Core)
+# Backend 
 A lightweight DAG execution engine built with Python FastAPI and NetworkX.
 
 ## Core Features
