@@ -9,12 +9,14 @@ async def run_websocket(i: WebSocket):
     data_json = await i.receive_json()
 
     if not data_json or "nodes" not in data_json or "edges" not in data_json :     
-            await i.send_json({"status": "error", "error_message": "Missing nodes or edges"})  
+            await i.send_json({"status": "error", "error_message": "Missing nodes or edges"})
+            return
 
     order = execution_order(data_json)
 
     if order == "LOOP_ERROR":
             await i.send_json({"status": "error", "error_message": "Workflow contains a circular loop" })
+            return
 
     node_outputs = {}
     node_map = {}
