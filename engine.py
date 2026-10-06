@@ -6,10 +6,10 @@ import networkx as nx
 def execution_order(data_json):
     graph = nx.DiGraph()
 
-    for node in data_json("nodes", []):
+    for node in data_json.get("nodes", []):
         graph.add_node(node["id"])
     
-    for edge in data_json("edges", []):
+    for edge in data_json.get("edges", []):
         graph.add_edge(edge["source"], edge["target"])
 
     if not nx.is_directed_acyclic_graph(graph):
