@@ -38,6 +38,7 @@ def replace_variable(text, node_outputs):
 def run_node(node_data, node_outputs):
     node_type = node_data.get("type")
     config = node_data.get("config", {})
+    
 
     #node is an HTTP API Request
     if node_type == "api":
@@ -54,6 +55,35 @@ def run_node(node_data, node_outputs):
               return {"text": response.text, "status_code": 200, "status": "success"}
     
         return {"text": f"HTTP Error {response.status_code}", "status": "error"}  
+
+    if node_type == "condition":
+        source_id = config.get("source_id")
+        field = config.get("field")
+        llm_node = node_outputs.get(source_id,{})
+        field = llm_node.get("text","").strip()
+        value = config.get("value")
+        
+
+        
+        if field == "URGENT/HIGH" :
+            value = "HIGH"
+            return {"status_code": 200, "status": "success","urgency":"high"}
+        elif field == "LOW/NOTURGENT":
+            value = "LOW"
+            return {"status_code": 200, "status": "success","urgency":"low"}
+        return {"status_code": 400, "status": "error","urgency":"none"}
+        
+            
+
+
+
+
+
+
+       
+
+
+
         
     #node is an LLM Call - Have to implement
     

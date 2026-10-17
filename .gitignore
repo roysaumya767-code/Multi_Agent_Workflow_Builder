@@ -4,7 +4,12 @@ __pycache__/
 venv/
 .env
 
-# Node.js 
+# Node.js
 node_modules/
-.next/
+dist/
 build/
+.next/
+
+# Logs & OS files
+*.log
+.DS_Store
