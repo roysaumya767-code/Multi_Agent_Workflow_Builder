@@ -16,13 +16,6 @@ A lightweight DAG execution engine built with Python FastAPI, NetworkX, and Lang
 3. **Data Transform Node (`transform`)**: Performs `uppercase`, `lowercase`, or JSON extraction (`json_extract` via key path).
 4. **Conditional Node (`condition`)**: Evaluates `contains` or `equals` comparisons between two dynamic values to output boolean results (`true`/`false`).
 
-## LLM Provider & Token Calculation
-- **LLM Provider**: Groq API via `AsyncOpenAI` client pointing to `https://api.groq.com/openai/v1`.
-- **Token Count Formula**: Token usage per LLM call is extracted directly from the Groq API completion response payload:
-  $$\text{tokens} = \text{completion.usage.total\_tokens}$$
-- **Total Workflow Tokens**: Summed across all executed LLM nodes during the graph run and returned in the final WebSocket completion payload:
-  $$\text{total\_tokens} = \sum \text{node.tokens}$$
-
 ## Project Structure
 - `main.py`: FastAPI server, WebSocket endpoint (`/ws/run`), branch evaluation, and live stream controller.
 - `engine.py`: NetworkX graph topological sort, LangGraph state engine, regex string substitution, node action runners, and retry backoff logic.
