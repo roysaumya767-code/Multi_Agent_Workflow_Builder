@@ -83,7 +83,6 @@ async def run_once(node_data, node_outputs):
     node_type = node_data.get("type")
     config = node_data.get("config", {})
     
-
     #node is an HTTP API Request
     if node_type == "api":
         url = config.get("url", "")
@@ -100,37 +99,8 @@ async def run_once(node_data, node_outputs):
               return {"text": response.text, "status_code": 200, "status": "success"}
     
         return {"text": f"HTTP Error {response.status_code}", "status": "error"}  
-
-    if node_type == "condition":
-        source_id = config.get("source_id")
-        field = config.get("field")
-        llm_node = node_outputs.get(source_id,{})
-        field = llm_node.get("text","").strip()
-        value = config.get("value")
-        
-
-        
-        if field == "URGENT/HIGH" :
-            value = "HIGH"
-            return {"status_code": 200, "status": "success","urgency":"high"}
-        elif field == "LOW/NOTURGENT":
-            value = "LOW"
-            return {"status_code": 200, "status": "success","urgency":"low"}
-        return {"status_code": 400, "status": "error","urgency":"none"}
-        
-            
-
-
-
-
-
-
-       
-
-
-
-        
-    #node is an LLM Call - Have to implement
+    
+    #node is an LLM Call
     elif node_type in ["llm", "agent"]:
         raw_prompt = config.get("prompt", "Hello")
         model_name = config.get("model", "openai/gpt-oss-20b")
@@ -139,7 +109,7 @@ async def run_once(node_data, node_outputs):
         answer, tokens = await run_langgraph_agent(final_prompt, model_name)
         return {"text": answer, "tokens": tokens, "status": "success"}
 
-    #Data Transform Node - Have to implement
+    #Data Transform Node
     if node_type == "transform":
         text = replace_variable(config.get("input", ""), node_outputs)
         operation = config.get("operation", "uppercase").lower()
@@ -172,7 +142,7 @@ async def run_once(node_data, node_outputs):
         return {"text": str(result), "result": result, "status": "success"}
     return {"text": "Unsupported node type: " + str(node_type), "status": "error"}
 
-#Running anode with retries
+#Running a node with retries
 async def run_node(node_data, node_outputs):
     config = node_data.get("config", {})
     retries = config.get("retries", 0)
