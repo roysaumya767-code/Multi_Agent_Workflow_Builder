@@ -34,20 +34,22 @@ def execution_order(data_json):
 
 #Variable Replacement Engine
 def replace_variable(text, node_outputs):
-    matches = re.findall(r"\{\{(.*?)\}\}", text)
+    if not isinstance(text, str):
+        return text
+    def replace_match(match):
+        parts = match.group(1).strip().split(".")
+        if len(parts) < 2 or parts[0] not in node_outputs:
+            return match.group(0)      
+        
+        key_name = parts[2] if len(parts) >= 3 else parts[1]
+        source_data = node_outputs[parts[0]]
 
-    for m in matches:
-        parts = m.strip().split(".")
-        if len(parts) >=3 and parts[0] in node_outputs:
-          source_id = parts[0]  
-          key_name = parts[2]        
-
-          if source_id in node_outputs:
-            actual_value = node_outputs[source_id].get(key_name, "")
-            pattern = "{{" + m + "}}"
-            text = text.replace(pattern, str(actual_value))
-    return text
-
+        if isinstance(source_data, dict):
+            return str(source_data.get(key_name, ""))
+        
+        return str(source_data)
+    
+    return re.sub(r"\{\{(.*?)\}\}", replace_match, text)
 #LLM Node(Innner Langgraph)
 class AgentState(TypedDict):
     prompt: str
@@ -56,14 +58,14 @@ class AgentState(TypedDict):
     tokens: int
 async def call_llm(state: AgentState):
     if client is None:
-        return {"response": "[Simulated LLM Output]: " + state["prompt"], "tokens": 0}
+        raise RuntimeError("GROQ_API_KEY is missing.")
     
     completion = await client.chat.completions.create(
         model=state["model"],
         messages=[{"role": "user", "content": state["prompt"]}],
     )
     return {
-        "response": completion.choices[0].message.content,
+        "response": completion.choices[0].message.content or "",
         "tokens": completion.usage.total_tokens,
     }
 builder = StateGraph(AgentState)
@@ -99,7 +101,7 @@ async def run_once(node_data, node_outputs):
               return {"text": response.text, "status_code": 200, "status": "success"}
     
         return {"text": f"HTTP Error {response.status_code}", "status": "error"}  
-    
+ 
     #node is an LLM Call
     elif node_type in ["llm", "agent"]:
         raw_prompt = config.get("prompt", "Hello")
@@ -110,32 +112,42 @@ async def run_once(node_data, node_outputs):
         return {"text": answer, "tokens": tokens, "status": "success"}
 
     #Data Transform Node
-    if node_type == "transform":
+    if node_type in ["transform", "falseTransform"]:
         text = replace_variable(config.get("input", ""), node_outputs)
         operation = config.get("operation", "uppercase").lower()
- 
+        print("Transform block reached!")
+        print("Input:", config.get("input", ""))
+        print("Operation:", config.get("operation", "uppercase"))
         if operation == "uppercase":
             text = text.upper()
         elif operation == "lowercase":
             text = text.lower()
         elif operation == "json_extract":
             data = json.loads(text)
-            text = str(data.get(config.get("key", ""), ""))
+    
+            for part in config.get("key", "").split("."):
+                if part == "":
+                    continue
+                if isinstance(data, list):
+                    data = data[int(part)]
+                elif isinstance(data, dict):
+                    data = data.get(part, "")
+            text = data if isinstance(data, str) else json.dumps(data)
         else:
             return {"text": "Error: Unknown operation " + operation, "status": "error"}
- 
         return {"text": text, "status": "success"}
-
+    
     #Conditional Node
     if node_type == "condition":
         left = replace_variable(config.get("left", ""), node_outputs)
         right = replace_variable(config.get("right", ""), node_outputs)
         operator = config.get("operator", "contains")
+       
  
         if operator == "contains":
             result = right.lower() in left.lower()
         elif operator == "equals":
-            result = left == right
+            result = left.strip().lower() == right.strip().lower()
         else:
             return {"text": "Error: Unknown operator " + operator, "status": "error"}
  
@@ -180,4 +192,3 @@ def should_skip(node_id, edges, node_outputs, skipped):
                 return True
  
     return False
-

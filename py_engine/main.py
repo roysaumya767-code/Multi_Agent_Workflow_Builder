@@ -1,8 +1,19 @@
 from fastapi import FastAPI, WebSocket
+import uvicorn
 from engine import execution_order, run_once, should_skip
+from fastapi.middleware.cors import CORSMiddleware
+import os
 
 app = FastAPI(title="Multi-Agent Workflow Builder Backend")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # your Vite frontend origin, or ["*"] for dev
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.websocket("/ws/run")
+
 
 async def run_websocket(i: WebSocket):
     await i.accept()
@@ -46,7 +57,7 @@ async def run_websocket(i: WebSocket):
                 "node_id": id,
                 "status": "error",
                 "error_message": result["text"],
-                "attempts": result["attempts"],
+                "attempts": result.get("attempts", 0),
             })
             await i.close()
             return
@@ -57,4 +68,9 @@ async def run_websocket(i: WebSocket):
  
     await i.send_json({"status": "completed", "total_tokens": total_tokens})
     await i.close()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT",8000))
+    uvicorn.run(app,host="0.0.0.0",port=port)
+    
  

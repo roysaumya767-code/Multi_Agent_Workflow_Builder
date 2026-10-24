@@ -1,0 +1,24 @@
+# Ignore environment variables containing API keys
+.env
+.env.local
+*.env
+
+# Ignore Python cached files
+__pycache__/
+*.pyc
+
+<<<<<<< HEAD
+# Ignore Node.js dependencies (for frontend)
+node_modules/
+dist/
+=======
+# Node.js
+node_modules/
+dist/
+build/
+.next/
+
+# Logs & OS files
+*.log
+.DS_Store
+>>>>>>> origin/main

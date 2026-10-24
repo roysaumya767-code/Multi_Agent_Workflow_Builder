@@ -1,24 +1,19 @@
-# Ignore environment variables containing API keys
+
+# Node.js dependencies
+node_modules/
+**/node_modules/
+
+# Environment files and secrets
 .env
-.env.local
-*.env
+.env.*
+!.env.example
 
-# Ignore Python cached files
+# Python generated files
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+venv/
 
-<<<<<<< HEAD
-# Ignore Node.js dependencies (for frontend)
-node_modules/
-dist/
-=======
-# Node.js
-node_modules/
+# Build output
 dist/
 build/
-.next/
-
-# Logs & OS files
-*.log
-.DS_Store
->>>>>>> origin/main

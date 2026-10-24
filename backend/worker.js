@@ -1,16 +1,53 @@
 const { Worker } = require("bullmq");
+const {publishMessage,subscribeMessage} = require("./pubsub");
+
+const WebSocket = require("ws");
 console.log("Starting worker...");
 const Worker1 = new Worker("workflowqueue",async (job) => {
     console.log("job.id : ",job.id);
     console.log("nodes : ",job.data);
 
    await  new Promise((res) => setTimeout(() => res(),5*1000));
-   console.log("Attempt failing:", new Date().toLocaleString());
-   //throw new Error("bullmq retrying");
-      
+      const ws = new WebSocket("ws://127.0.0.1:8000/ws/run")
+   await  new Promise((res,rej) =>{
+    ws.on("open",res);
+    ws.on("error",rej);
+   });
+      try {
+        ws.send(JSON.stringify(job.data));
+       const result =  await  new Promise((res,rej) => {
+        ws.on("message",async (x) => {
+          const message = JSON.parse(x.toString());
+                   console.log(message);
+            await publishMessage("nodeinfo",{user:job.data.sub,message:message});
+                  
 
-   console.log("job finished");
-     return { success: "true"};
+       
+        if (
+  ["completed", "error"].includes(message.status) &&
+  !("node_id" in message)
+) {
+          if(message.status==="error") {
+             rej(new Error(message.message || "Workflow failed"));
+          }
+          else {
+            res(message)
+          }
+
+        }
+         });
+       });
+       console.log("result", result);
+         return { success: "true",result: result};
+           
+
+      }
+      finally {
+         ws.close();
+      }
+  
+    
+
 
 },{
     connection: {

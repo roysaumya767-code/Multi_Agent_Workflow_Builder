@@ -16,4 +16,6 @@ client.on('error', (error) => {
   console.log(`Redis error: ${error.message}`);
 });
 
+
+
 module.exports = client;
