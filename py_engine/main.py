@@ -1,8 +1,12 @@
 from fastapi import FastAPI, WebSocket
+<<<<<<< Updated upstream:py_engine/main.py
 import uvicorn
 from engine import execution_order, run_once, should_skip
 from fastapi.middleware.cors import CORSMiddleware
 import os
+=======
+from engine import execution_order, run_node, should_skip
+>>>>>>> Stashed changes:main.py
 
 app = FastAPI(title="Multi-Agent Workflow Builder Backend")
 app.add_middleware(
@@ -50,7 +54,7 @@ async def run_websocket(i: WebSocket):
             continue
  
         await i.send_json({"node_id": id, "status": "running"})
-        result = await run_once(node_map[id], node_outputs)
+        result = await run_node(node_map[id], node_outputs)
  
         if result["status"] == "error":
             await i.send_json({

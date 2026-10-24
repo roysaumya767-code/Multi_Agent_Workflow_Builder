@@ -31,24 +31,39 @@ def execution_order(data_json):
     else :
       ordered_node_id = list(nx.topological_sort(graph))
       return ordered_node_id
-
 #Variable Replacement Engine
 def replace_variable(text, node_outputs):
     if not isinstance(text, str):
         return text
     def replace_match(match):
         parts = match.group(1).strip().split(".")
+<<<<<<< Updated upstream:py_engine/engine.py
         if len(parts) < 2 or parts[0] not in node_outputs:
             return match.group(0)      
         
         key_name = parts[2] if len(parts) >= 3 else parts[1]
         source_data = node_outputs[parts[0]]
 
+=======
+
+        if len(parts) < 2 or parts[0] not in node_outputs:
+            return match.group(0)      
+    
+        if len(parts) >= 3 :
+            key_name = parts[2] 
+        else :
+            key_name = parts[1]
+
+        source_data = node_outputs[parts[0]]
+>>>>>>> Stashed changes:engine.py
         if isinstance(source_data, dict):
             return str(source_data.get(key_name, ""))
         
         return str(source_data)
+<<<<<<< Updated upstream:py_engine/engine.py
     
+=======
+>>>>>>> Stashed changes:engine.py
     return re.sub(r"\{\{(.*?)\}\}", replace_match, text)
 #LLM Node(Innner Langgraph)
 class AgentState(TypedDict):
@@ -112,7 +127,11 @@ async def run_once(node_data, node_outputs):
         return {"text": answer, "tokens": tokens, "status": "success"}
 
     #Data Transform Node
+<<<<<<< Updated upstream:py_engine/engine.py
     if node_type in ["transform", "falseTransform"]:
+=======
+    if node_type == "transform":
+>>>>>>> Stashed changes:engine.py
         text = replace_variable(config.get("input", ""), node_outputs)
         operation = config.get("operation", "uppercase").lower()
         print("Transform block reached!")
