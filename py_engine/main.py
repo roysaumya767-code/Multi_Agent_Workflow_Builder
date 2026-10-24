@@ -1,12 +1,8 @@
-from fastapi import FastAPI, WebSocket
-<<<<<<< Updated upstream:py_engine/main.py
-import uvicorn
-from engine import execution_order, run_once, should_skip
-from fastapi.middleware.cors import CORSMiddleware
 import os
-=======
+import uvicorn
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from engine import execution_order, run_node, should_skip
->>>>>>> Stashed changes:main.py
 
 app = FastAPI(title="Multi-Agent Workflow Builder Backend")
 app.add_middleware(
@@ -17,7 +13,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 @app.websocket("/ws/run")
-
 
 async def run_websocket(i: WebSocket):
     await i.accept()
